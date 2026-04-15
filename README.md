@@ -88,6 +88,16 @@ book-reader/
 └── README.md           # 项目说明文件
 ```
 
+## 开发计划
+
+- **听书**：集成本地VITS语音合成
+- **格式支持**：扩展多种格式（如EPUB、PDF等）
+- **UI优化**：提升用户界面美观度和交互体验
+
+## 展示图
+
+![Book Reader](DisplayImage.png)
+
 ## 许可证
 
 MIT
