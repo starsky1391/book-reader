@@ -2,6 +2,17 @@
 
 一个轻量级的桌面小说阅读器，基于 Electron + Vue3 + Vite + Tailwind CSS 开发。
 
+## 开发计划
+
+- **听书**：集成本地VITS语音合成
+- **格式支持**：扩展多种格式（如EPUB、PDF等）
+- **UI优化**：提升用户界面美观度和交互体验
+
+## 展示图
+
+![Book Reader](DisplayImage.png)
+
+
 ## 功能特点
 
 - **本地 TXT 导入**：支持导入本地 TXT 文件到应用中
