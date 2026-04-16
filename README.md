@@ -2,11 +2,16 @@
 
 一个轻量级的桌面小说阅读器，基于 Electron + Vue3 + Vite + Tailwind CSS 开发。
 
-## 开发计划
+## 版本号
+
+2.0.0
+
+## TODO
 
 - **听书**：集成本地VITS语音合成
 - **格式支持**：扩展多种格式（如EPUB、PDF等）
-- **UI优化**：提升用户界面美观度和交互体验
+- **UI优化**：进一步提升用户界面美观度和交互体验
+- ~~**阅读进度保存**：自动保存阅读进度~~
 
 ## 展示图
 
@@ -91,23 +96,22 @@ book-reader/
 │   ├── main.js         # 主进程入口文件
 │   └── preload.js      # 预加载脚本
 ├── src/                # Vue 前端代码
+│   ├── assets/         # 静态资源
+│   ├── components/     # 组件
 │   ├── services/       # 服务层
-│   │   └── StoreService.js  # 存储服务
+│   │   ├── FileService.js    # 文件服务
+│   │   ├── StoreService.js   # 存储服务
+│   │   └── TTSService.js     # 语音合成服务
 │   ├── App.vue         # 主应用组件
-│   └── main.js         # 前端入口文件
+│   ├── main.ts         # 前端入口文件
+│   └── style.css       # 全局样式
+├── public/             # 公共资源
+├── dist-electron/      # 打包输出目录
 ├── package.json        # 项目配置文件
-└── README.md           # 项目说明文件
+├── README.md           # 项目说明文件
+├── run.bat             # 一键启动脚本
+└── vite.config.js      # Vite 配置文件
 ```
-
-## TODO
-
-- **听书**：集成本地VITS语音合成
-- **格式支持**：扩展多种格式（如EPUB、PDF等）
-- **UI优化**：提升用户界面美观度和交互体验
-
-## 展示图
-
-![Book Reader](DisplayImage.png)
 
 ## 许可证
 

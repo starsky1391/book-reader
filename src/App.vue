@@ -1,5 +1,13 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { NConfigProvider, NLayout, NLayoutSider, NLayoutContent, NLayoutFooter, NButton, NList, NListItem, NDrawer, NTabs, NTab, NTabPane, NSlider, NSwitch, NSelect, NRadioGroup, NRadio, NScrollbar, NIcon, NEmpty, NEllipsis, NCard } from 'naive-ui'
+import { Sunny, Moon, Book, Settings, Add, Trash, ArrowBack, ArrowForward, Play, Pause, Stop, Menu } from '@vicons/ionicons5'
+import { zhCN, enUS } from 'naive-ui'
+import { useThemeVars } from 'naive-ui'
+import { createDiscreteApi } from 'naive-ui'
+
+// 创建离散API
+const { message, notification, dialog, loadingBar } = createDiscreteApi(['message', 'notification', 'dialog', 'loadingBar'])
 
 // 书架数据
 const books = ref([])
@@ -24,8 +32,29 @@ const currentSpeed = ref(1.0)
 // 面板状态管理
 const activePanel = ref(null) // null, 'directory', 'settings'
 
+// 抽屉控制
+const directoryDrawerVisible = ref(false)
+const settingsDrawerVisible = ref(false)
+
 // 设置面板标签页
 const activeSettingTab = ref('preference') // preference, text, background, other
+
+// 字体选项
+const fontOptions = [
+  { label: '系统默认', value: 'system-ui' },
+  { label: 'Arial', value: 'Arial' },
+  { label: '宋体', value: 'SimSun' },
+  { label: '黑体', value: 'SimHei' },
+  { label: '微软雅黑', value: 'Microsoft YaHei' }
+]
+
+// 主题选项
+const themeOptions = [
+  { key: 'white', label: '白色', color: '#FBFBFB' },
+  { key: 'parchment', label: '羊皮纸', color: '#F4F1E6' },
+  { key: 'green', label: '护眼绿', color: '#F0F9E8' },
+  { key: 'dark', label: '深夜', color: '#16171D' }
+]
 
 // 听书设置
 const autoContinue = ref(true)
@@ -91,34 +120,54 @@ const setTheme = async (theme) => {
     case 'white':
       isDarkMode.value = false
       isEyeProtectionMode.value = false
-      // 设置背景为白色，文字为 #333333
-      document.documentElement.style.setProperty('--bg', 'white')
-      document.documentElement.style.setProperty('--text', '#333333')
+      // 更新全局 CSS 变量
+      document.documentElement.style.setProperty('--bg-main', '#FBFBFB')
+      document.documentElement.style.setProperty('--bg-paper', '#FFFFFF')
+      document.documentElement.style.setProperty('--bg-sidebar', '#FFFFFF')
+      document.documentElement.style.setProperty('--bg-card', '#F9F9F9')
+      document.documentElement.style.setProperty('--text-main', '#2D3436')
       document.documentElement.style.setProperty('--text-h', '#000000')
+      document.documentElement.style.setProperty('--bg', '#FBFBFB')
+      document.documentElement.style.setProperty('--text', '#2D3436')
       break
     case 'parchment':
       isDarkMode.value = false
       isEyeProtectionMode.value = false
-      // 设置背景为羊皮纸色，文字为 #333333
-      document.documentElement.style.setProperty('--bg', '#f5f0e6')
-      document.documentElement.style.setProperty('--text', '#333333')
-      document.documentElement.style.setProperty('--text-h', '#000000')
+      // 更新全局 CSS 变量
+      document.documentElement.style.setProperty('--bg-main', '#F4F1E6')
+      document.documentElement.style.setProperty('--bg-paper', '#EBE7D9')
+      document.documentElement.style.setProperty('--bg-sidebar', '#EBE7D9')
+      document.documentElement.style.setProperty('--bg-card', '#F6F3E8')
+      document.documentElement.style.setProperty('--text-main', '#5D4037')
+      document.documentElement.style.setProperty('--text-h', '#3E2723')
+      document.documentElement.style.setProperty('--bg', '#F4F1E6')
+      document.documentElement.style.setProperty('--text', '#5D4037')
       break
     case 'green':
       isDarkMode.value = false
       isEyeProtectionMode.value = true
-      // 设置背景为护眼色 #C7EDCC，文字为深色
-      document.documentElement.style.setProperty('--bg', '#C7EDCC')
-      document.documentElement.style.setProperty('--text', '#333333')
-      document.documentElement.style.setProperty('--text-h', '#000000')
+      // 更新全局 CSS 变量
+      document.documentElement.style.setProperty('--bg-main', '#F0F9E8')
+      document.documentElement.style.setProperty('--bg-paper', '#E5F2DB')
+      document.documentElement.style.setProperty('--bg-sidebar', '#E5F2DB')
+      document.documentElement.style.setProperty('--bg-card', '#F2FAEA')
+      document.documentElement.style.setProperty('--text-main', '#2D4F1E')
+      document.documentElement.style.setProperty('--text-h', '#1B3311')
+      document.documentElement.style.setProperty('--bg', '#F0F9E8')
+      document.documentElement.style.setProperty('--text', '#2D4F1E')
       break
     case 'dark':
       isDarkMode.value = true
       isEyeProtectionMode.value = false
-      // 设置背景为 #1A1A1A，文字为浅灰
-      document.documentElement.style.setProperty('--bg', '#1A1A1A')
-      document.documentElement.style.setProperty('--text', '#CCCCCC')
+      // 更新全局 CSS 变量
+      document.documentElement.style.setProperty('--bg-main', '#16171D')
+      document.documentElement.style.setProperty('--bg-paper', '#1A1A1A')
+      document.documentElement.style.setProperty('--bg-sidebar', '#21222D')
+      document.documentElement.style.setProperty('--bg-card', '#1E1F2A')
+      document.documentElement.style.setProperty('--text-main', '#A0A0A0')
       document.documentElement.style.setProperty('--text-h', '#FFFFFF')
+      document.documentElement.style.setProperty('--bg', '#16171D')
+      document.documentElement.style.setProperty('--text', '#A0A0A0')
       break
   }
   
@@ -459,12 +508,10 @@ const showChapterContent = (chapterIndex) => {
 
 // 切换面板
 const togglePanel = (panel) => {
-  if (activePanel.value === panel) {
-    // 如果当前面板已经是要切换的面板，则关闭它
-    activePanel.value = null
-  } else {
-    // 否则，打开指定面板
-    activePanel.value = panel
+  if (panel === 'directory') {
+    directoryDrawerVisible.value = true
+  } else if (panel === 'settings') {
+    settingsDrawerVisible.value = true
   }
 }
 
@@ -477,7 +524,7 @@ const closePanel = () => {
 const selectChapter = (chapterIndex) => {
   showChapterContent(chapterIndex)
   // 关闭目录面板
-  activePanel.value = null
+  directoryDrawerVisible.value = false
 }
 
 // 删除书籍
@@ -613,372 +660,821 @@ onUnmounted(async () => {
 </script>
 
 <template>
-  <div 
-    id="app" 
-    :class="{
-      'dark': isDarkMode,
-      'eye-protection': isEyeProtectionMode
-    }"
-    class="flex h-screen w-full bg-[var(--bg)] text-[var(--text)] overflow-hidden"
-    :style="{
-      '--font-size': fontSize + 'px',
-      '--line-height': lineHeight,
-      '--letter-spacing': letterSpacing + 'px',
-      '--text-align': textAlign
-    }"
-  >
-    <!-- 左侧边栏 -->
-    <aside class="sidebar w-[240px] border-r border-[var(--border)] p-4 flex flex-col">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-lg font-bold text-white">书架</h1>
-        <button 
-          @click="importFile" 
-          class="px-3 py-1 bg-[var(--accent)] text-white rounded-md hover:bg-opacity-90 transition-colors"
+  <NConfigProvider :locale="zhCN">
+    <div 
+      id="app" 
+      :class="{
+        'dark': isDarkMode,
+        'eye-protection': isEyeProtectionMode
+      }"
+      class="h-screen w-full overflow-hidden"
+    >
+      <NLayout position="absolute" has-sider class="h-full w-full">
+        <!-- 左侧边栏 -->
+        <NLayoutSider 
+          collapse-mode="width" 
+          :width="300" 
+          :collapsed-width="64" 
+          class="bg-[var(--bg-sidebar)] text-[var(--text-main)]"
         >
-          导入
-        </button>
-      </div>
-      
-      <!-- 书架列表 -->
-      <div class="flex-1 overflow-y-auto pr-2">
-        <ul class="space-y-2">
-          <li 
-            v-for="book in books" 
-            :key="book.id"
-            class="book-item" 
-            :class="{ 'selected': currentBook.id === book.id }"
-            @click="loadBook(book.id)"
-          >
-            <div>
-              <h3 class="font-medium text-sm">{{ book.title }}</h3>
-              <p class="text-xs">{{ book.author }}</p>
+          <div class="bookshelf-container">
+            <div class="bookshelf-content">
+              <div class="flex justify-between items-center mb-6">
+                <h2 class="shelf-title">我的书架</h2>
+                <NButton 
+                  @click="importFile" 
+                  type="primary" 
+                  size="small" 
+                  circle 
+                  secondary
+                  style="background-color: #b88552"
+                >
+                  <template #icon>
+                    <NIcon><Add /></NIcon>
+                  </template>
+                </NButton>
+              </div>
+              
+              <!-- 书架列表 -->
+              <NScrollbar class="flex-1">
+                <div class="book-list-vertical">
+                  <div 
+                    v-for="book in books" 
+                    :key="book.id"
+                    @click="loadBook(book.id)"
+                    class="book-row-item"
+                    :class="{ 'ring-2 ring-[#b88552]': currentBook.id === book.id }"
+                  >
+                    <!-- 微型封面 -->
+                    <div class="book-cover-mini">
+                      <span class="cover-text">{{ book.title.charAt(0) }}</span>
+                    </div>
+                    
+                    <!-- 书籍信息 -->
+                    <div class="book-details">
+                      <div class="book-name-row">
+                        <span class="name">{{ book.title }}</span>
+                      </div>
+                      <div class="book-author">{{ book.author }}</div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="book-actions">
+                      <NButton 
+                        @click.stop="deleteBook(book.id)"
+                        quaternary 
+                        circle 
+                        type="error" 
+                        size="small"
+                      >
+                        <template #icon>
+                          <NIcon><Trash /></NIcon>
+                        </template>
+                      </NButton>
+                    </div>
+                  </div>
+                  
+                  <NEmpty v-if="books.length === 0" description="书架空空如也" />
+                </div>
+              </NScrollbar>
+              
+              <!-- 版本号 -->
+              <div class="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500 text-center">
+                v1.0.0
+              </div>
             </div>
-            <button 
-              @click.stop="deleteBook(book.id)"
-              class="delete-btn px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs"
-            >
-              删除
-            </button>
-          </li>
-        </ul>
-      </div>
-      
-      <!-- 版本号 -->
-      <div class="mt-6 text-xs opacity-50 text-center">
-        v1.0.0
-      </div>
-    </aside>
-    
-    <!-- 右侧主区域 -->
-    <main class="flex-1 flex flex-col overflow-hidden relative">
-      <!-- 顶部控制栏 -->
-      <header class="border-b border-[var(--border)] p-4 flex justify-between items-center">
-        <h2 class="text-lg font-medium text-[var(--text-h)]">{{ currentBook.title }}</h2>
-        <div class="flex space-x-2">
-          <button 
-            @click="togglePanel('directory')" 
-            class="px-3 py-1 border border-[var(--border)] rounded-md hover:bg-[var(--accent-bg)] transition-colors"
-          >
-            目录
-          </button>
-          <button 
-            @click="togglePanel('settings')" 
-            class="px-3 py-1 border border-[var(--border)] rounded-md hover:bg-[var(--accent-bg)] transition-colors"
-          >
-            设置
-          </button>
-        </div>
-      </header>
-      
-      <!-- 文本显示区 -->
-      <div class="flex-1 overflow-y-auto">
-        <pre class="whitespace-pre-wrap text-[var(--text)] leading-relaxed">{{ currentBook.content }}</pre>
-      </div>
-      
-      <!-- 底部控制栏 -->
-      <footer class="bottom-controls border-t border-[var(--border)] p-4 flex justify-between items-center">
-        <div class="flex space-x-2">
-          <button 
-            @click="changeChapter(-1)" 
-            :disabled="currentBook.chapters && currentBook.currentChapterIndex === 0"
-            class="px-3 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            上一章
-          </button>
-          <button 
-            @click="changeChapter(1)" 
-            :disabled="currentBook.chapters && currentBook.currentChapterIndex === currentBook.chapters.length - 1"
-            class="px-3 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            下一章
-          </button>
-        </div>
-        <div class="flex space-x-2 items-center">
-          <button 
-            @click="togglePlay" 
-            class="px-3 py-1 rounded-md transition-colors"
-          >
-            {{ isPlaying ? '暂停' : '开始听书' }}
-          </button>
-          <button 
-            @click="stopPlay" 
-            class="px-3 py-1 rounded-md transition-colors"
-          >
-            停止
-          </button>
-        </div>
-      </footer>
-      
-      <!-- 目录面板 -->
-      <div 
-        v-if="activePanel === 'directory'" 
-        class="fixed top-0 right-0 h-full w-80 bg-[var(--bg)] border-l border-[var(--border)] p-4 overflow-y-auto z-50"
-      >
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-[var(--text-h)]">目录</h3>
-          <button 
-            @click="closePanel" 
-            class="px-2 py-1 bg-[var(--accent)] text-white rounded-md hover:bg-opacity-90 transition-colors"
-          >
-            关闭
-          </button>
-        </div>
-        <ul class="space-y-2">
-          <li 
-            v-for="(chapter, index) in currentBook.chapters" 
-            :key="index"
-            @click="selectChapter(index)"
-            class="p-2 rounded-md hover:bg-[var(--accent-bg)] cursor-pointer transition-colors"
-          >
-            <span class="text-sm text-[var(--text)]">{{ chapter.title }}</span>
-          </li>
-          <li v-if="!currentBook.chapters || currentBook.chapters.length === 0" class="p-2 text-sm text-[var(--text)]">
-            暂无章节信息
-          </li>
-        </ul>
-      </div>
-      
-      <!-- 设置面板 -->
-      <div 
-        v-if="activePanel === 'settings'" 
-        class="settings-drawer fixed top-0 right-0 h-full w-80 border-l border-[var(--border)] p-4 overflow-y-auto z-50"
-      >
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-[var(--text-h)]">设置</h3>
-          <button 
-            @click="closePanel" 
-            class="px-2 py-1 bg-[var(--accent)] text-white rounded-md hover:bg-opacity-90 transition-colors"
-          >
-            关闭
-          </button>
-        </div>
-        
-        <!-- 设置标签页 -->
-        <div class="mb-4">
-          <div class="flex border-b border-[var(--border)]">
-            <button 
-              @click="activeSettingTab = 'preference'" 
-              :class="['px-4 py-2 text-sm', activeSettingTab === 'preference' ? 'border-b-2 border-[var(--accent)] text-[var(--accent)]' : 'text-[var(--text)]']"
-            >
-              偏好
-            </button>
-            <button 
-              @click="activeSettingTab = 'text'" 
-              :class="['px-4 py-2 text-sm', activeSettingTab === 'text' ? 'border-b-2 border-[var(--accent)] text-[var(--accent)]' : 'text-[var(--text)]']"
-            >
-              文字
-            </button>
-            <button 
-              @click="activeSettingTab = 'background'" 
-              :class="['px-4 py-2 text-sm', activeSettingTab === 'background' ? 'border-b-2 border-[var(--accent)] text-[var(--accent)]' : 'text-[var(--text)]']"
-            >
-              阅读背景
-            </button>
-            <button 
-              @click="activeSettingTab = 'other'" 
-              :class="['px-4 py-2 text-sm', activeSettingTab === 'other' ? 'border-b-2 border-[var(--accent)] text-[var(--accent)]' : 'text-[var(--text)]']"
-            >
-              其它
-            </button>
           </div>
-        </div>
+        </NLayoutSider>
         
-        <!-- 偏好标签页 -->
-        <div v-if="activeSettingTab === 'preference'" class="space-y-4">
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">听书设置</h4>
-            <div class="flex items-center space-x-2">
-              <span class="text-sm">语速: {{ currentSpeed.toFixed(1) }}x</span>
-              <input 
-                type="range" 
-                min="0.5" 
-                max="2.0" 
-                step="0.1" 
-                v-model="currentSpeed" 
-                @change="changeSpeed(currentSpeed)" 
-                class="flex-1"
+        <!-- 右侧主区域 -->
+        <NLayoutContent class="bg-[var(--bg)] text-[var(--text)]">
+          <div class="h-full flex flex-col">
+            <!-- 顶部控制栏 -->
+            <header class="border-b border-[var(--border)] p-4 flex justify-between items-center">
+              <h2 class="text-lg font-medium text-[var(--text-h)]">{{ currentBook.title }}</h2>
+              <div class="flex space-x-2">
+                <NButton 
+                  @click="togglePanel('directory')" 
+                  size="small"
+                  quaternary
+                >
+                  <template #icon>
+                    <NIcon><Book /></NIcon>
+                  </template>
+                  目录
+                </NButton>
+                <NButton 
+                  @click="togglePanel('settings')" 
+                  size="small"
+                  quaternary
+                >
+                  <template #icon>
+                    <NIcon><Settings /></NIcon>
+                  </template>
+                  设置
+                </NButton>
+              </div>
+            </header>
+            
+            <!-- 文本显示区 -->
+            <div class="flex-1 overflow-hidden">
+              <NScrollbar class="h-full">
+                <div class="reader-layout">
+                  <pre class="whitespace-pre-wrap text-[var(--text)] leading-relaxed" style="text-align: justify; text-justify: inter-character;">{{ currentBook.content }}</pre>
+                </div>
+              </NScrollbar>
+            </div>
+            
+            <!-- 底部控制栏 -->
+            <footer class="border-t border-[var(--border)] p-4 flex justify-between items-center">
+              <div class="flex space-x-2">
+                <NButton 
+                  @click="changeChapter(-1)" 
+                  :disabled="currentBook.chapters && currentBook.currentChapterIndex === 0"
+                  size="small"
+                  quaternary
+                >
+                  <template #icon>
+                    <NIcon><ArrowBack /></NIcon>
+                  </template>
+                </NButton>
+                <NButton 
+                  @click="changeChapter(1)" 
+                  :disabled="currentBook.chapters && currentBook.currentChapterIndex === currentBook.chapters.length - 1"
+                  size="small"
+                  quaternary
+                >
+                  <template #icon>
+                    <NIcon><ArrowForward /></NIcon>
+                  </template>
+                </NButton>
+              </div>
+              <div class="flex space-x-2 items-center">
+                <NButton 
+                  @click="togglePlay" 
+                  size="small"
+                  quaternary
+                >
+                  <template #icon>
+                    <NIcon v-if="!isPlaying"><Play /></NIcon>
+                    <NIcon v-else><Pause /></NIcon>
+                  </template>
+                </NButton>
+                <NButton 
+                  @click="stopPlay" 
+                  size="small"
+                  quaternary
+                >
+                  <template #icon>
+                    <NIcon><Stop /></NIcon>
+                  </template>
+                </NButton>
+              </div>
+            </footer>
+          </div>
+        </NLayoutContent>
+      </NLayout>
+      
+      <!-- 目录抽屉 -->
+      <NDrawer 
+        v-model:show="directoryDrawerVisible" 
+        :width="320"
+        placement="left"
+        class="modern-drawer"
+        :native-scrollbar="false"
+      >
+        <div class="drawer-container">
+          <div class="drawer-header">
+            <span class="title">目录</span>
+            <span class="count">共 {{ currentBook?.chapters?.length || 0 }} 章</span>
+          </div>
+
+          <NScrollbar class="drawer-content">
+            <div class="px-4 py-2">
+              <div
+                v-for="(chapter, index) in currentBook?.chapters || []"
+                :key="index"
+                @click="selectChapter(index)"
+                class="chapter-item"
+                :class="{ 'active': currentBook?.currentChapterIndex === index }"
+              >
+                <span class="index-num">{{ (index + 1).toString().padStart(2, '0') }}</span>
+                
+                <span class="chapter-title">{{ chapter.title }}</span>
+
+                <div class="active-indicator"></div>
+              </div>
+
+              <NEmpty
+                v-if="!currentBook?.chapters?.length"
+                description="暂无章节信息"
+                class="mt-10"
               />
             </div>
-          </div>
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">播放逻辑</h4>
-            <div class="flex items-center justify-between">
-              <span class="text-sm">自动连读下一章</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  v-model="autoContinue" 
-                  class="sr-only peer"
+          </NScrollbar>
+        </div>
+      </NDrawer>
+      
+      <!-- 设置抽屉 -->
+      <NDrawer 
+        v-model:show="settingsDrawerVisible" 
+        :width="500"
+        placement="right"
+        class="modern-settings-drawer"
+        title="设置"
+      >
+        <div class="settings-content">
+          <NTabs v-model:value="activeSettingTab" type="card" class="custom-tabs">
+          <NTabPane name="preference" tab="偏好">
+            <div class="p-4 space-y-4">
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">听书设置 <span class="text-xs text-gray-500">{{ currentSpeed.toFixed(1) }}x</span></h4>
+                <NSlider 
+                  v-model:value="currentSpeed" 
+                  :min="0.5" 
+                  :max="2.0" 
+                  :step="0.1" 
+                  @update:value="changeSpeed(currentSpeed)"
+                  class="custom-slider"
+                />
+                <div class="flex justify-between text-xs mt-1">
+                  <span>0.5x</span>
+                  <span>2.0x</span>
+                </div>
+              </div>
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">播放逻辑</h4>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">自动连读下一章</span>
+                  <NSwitch v-model:value="autoContinue" class="custom-switch" />
+                </div>
+              </div>
+            </div>
+          </NTabPane>
+          
+          <NTabPane name="text" tab="文字">
+            <div class="p-4 space-y-4">
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">字体库</h4>
+                <NSelect v-model:value="fontFamily" :options="fontOptions" class="w-full" />
+              </div>
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">字体大小 <span class="text-xs text-gray-500">{{ fontSize }}px</span></h4>
+                <NSlider 
+                  v-model:value="fontSize" 
+                  :min="12" 
+                  :max="40" 
+                  :step="1" 
+                  @update:value="saveTextSettings"
+                  class="custom-slider"
+                />
+                <div class="flex justify-between text-xs mt-1">
+                  <span>12px</span>
+                  <span>40px</span>
+                </div>
+              </div>
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">行间距 <span class="text-xs text-gray-500">{{ lineHeight }}</span></h4>
+                <NSlider 
+                  v-model:value="lineHeight" 
+                  :min="1.0" 
+                  :max="2.0" 
+                  :step="0.1" 
+                  @update:value="saveTextSettings"
+                  class="custom-slider"
+                />
+                <div class="flex justify-between text-xs mt-1">
+                  <span>1.0</span>
+                  <span>2.0</span>
+                </div>
+              </div>
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">字符间距 <span class="text-xs text-gray-500">{{ letterSpacing }}px</span></h4>
+                <NSlider 
+                  v-model:value="letterSpacing" 
+                  :min="0" 
+                  :max="2" 
+                  :step="0.1" 
+                  @update:value="saveTextSettings"
+                  class="custom-slider"
+                />
+                <div class="flex justify-between text-xs mt-1">
+                  <span>0px</span>
+                  <span>2px</span>
+                </div>
+              </div>
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">对齐方式</h4>
+                <NRadioGroup v-model:value="textAlign" @update:value="saveTextSettings">
+                  <div class="flex space-x-4">
+                    <NRadio value="left">左对齐</NRadio>
+                    <NRadio value="justify">前后对齐</NRadio>
+                  </div>
+                </NRadioGroup>
+              </div>
+            </div>
+          </NTabPane>
+          
+          <NTabPane name="background" tab="阅读背景">
+            <div class="p-4 space-y-4">
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">主题选择</h4>
+                <div class="flex space-x-5 mt-4">
+                  <div 
+                    v-for="theme in themeOptions" 
+                    :key="theme.key" 
+                    @click="setTheme(theme.key)" 
+                    class="theme-circle-wrapper" 
+                    :class="{ 'is-active': selectedTheme === theme.key }"
+                  >
+                    <div 
+                      class="color-dot" 
+                      :style="{ backgroundColor: theme.color, border: theme.key === 'white' ? '1px solid #ddd' : 'none' }"
+                    >
+                      <div v-if="selectedTheme === theme.key" class="active-check"></div>
+                    </div>
+                    <span class="theme-label">{{ theme.label }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </NTabPane>
+          
+          <NTabPane name="other" tab="其它">
+            <div class="p-4 space-y-4">
+              <div class="setting-card">
+                <h4 class="text-sm font-medium mb-3">关于</h4>
+                <p class="text-sm">Book Reader v1.0.0</p>
+                <p class="text-sm">一个轻量级的桌面小说阅读器</p>
+              </div>
+              <div class="setting-card">
+                <NButton 
+                  @click="clearAllData" 
+                  class="w-full"
+                  type="warning"
+                  quaternary
                 >
-                <div class="w-11 h-6 bg-[var(--border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 文字标签页 -->
-        <div v-if="activeSettingTab === 'text'" class="space-y-4">
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">字体库</h4>
-            <div class="flex space-x-2">
-              <select v-model="fontFamily" class="flex-1 px-3 py-2 border border-[var(--border)] rounded-md bg-[var(--bg)] text-[var(--text)]">
-                <option value="system-ui">系统默认</option>
-                <option value="Arial">Arial</option>
-                <option value="SimSun">宋体</option>
-                <option value="SimHei">黑体</option>
-                <option value="Microsoft YaHei">微软雅黑</option>
-              </select>
-              <button class="px-3 py-2 border border-[var(--border)] rounded-md hover:bg-[var(--accent-bg)] transition-colors text-sm">
-                导入
-              </button>
-            </div>
-          </div>
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">精细调节</h4>
-            <div class="space-y-3">
-              <div>
-                <div class="flex justify-between text-sm mb-1">
-                  <span>字体大小</span>
-                  <span>{{ fontSize }}px</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="12" 
-                  max="40" 
-                  step="1" 
-                  v-model="fontSize" 
-                  @change="saveTextSettings" 
-                  class="w-full"
-                />
-              </div>
-              <div>
-                <div class="flex justify-between text-sm mb-1">
-                  <span>行间距</span>
-                  <span>{{ lineHeight }}</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="1.0" 
-                  max="2.0" 
-                  step="0.1" 
-                  v-model="lineHeight" 
-                  @change="saveTextSettings" 
-                  class="w-full"
-                />
-              </div>
-              <div>
-                <div class="flex justify-between text-sm mb-1">
-                  <span>字符间距</span>
-                  <span>{{ letterSpacing }}px</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="2" 
-                  step="0.1" 
-                  v-model="letterSpacing" 
-                  @change="saveTextSettings" 
-                  class="w-full"
-                />
+                  清空书籍和缓存
+                </NButton>
               </div>
             </div>
-          </div>
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">对齐</h4>
-            <div class="flex space-x-2">
-              <button 
-                @click="textAlign = 'left'" 
-                :class="['px-3 py-1 border border-[var(--border)] rounded-md', textAlign === 'left' ? 'bg-[var(--accent)] text-white' : 'hover:bg-[var(--accent-bg)] transition-colors']"
-              >
-                左对齐
-              </button>
-              <button 
-                @click="textAlign = 'justify'" 
-                :class="['px-3 py-1 border border-[var(--border)] rounded-md', textAlign === 'justify' ? 'bg-[var(--accent)] text-white' : 'hover:bg-[var(--accent-bg)] transition-colors']"
-              >
-                前后对齐
-              </button>
-            </div>
-          </div>
+          </NTabPane>
+        </NTabs>
         </div>
-        
-        <!-- 阅读背景标签页 -->
-        <div v-if="activeSettingTab === 'background'" class="space-y-4">
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">快速色块</h4>
-            <div class="flex gap-4">
-              <button 
-                @click="setTheme('white')" 
-                class="rounded-full border border-[var(--border)] cursor-pointer"
-                :style="selectedTheme === 'white' ? { width: '28px', height: '28px', boxShadow: '0 0 0 2px var(--accent)', backgroundColor: 'white' } : { width: '28px', height: '28px', backgroundColor: 'white' }"
-              ></button>
-              <button 
-                @click="setTheme('parchment')" 
-                class="rounded-full border border-[var(--border)] cursor-pointer"
-                :style="selectedTheme === 'parchment' ? { width: '28px', height: '28px', boxShadow: '0 0 0 2px var(--accent)', backgroundColor: '#f5f0e6' } : { width: '28px', height: '28px', backgroundColor: '#f5f0e6' }"
-              ></button>
-              <button 
-                @click="setTheme('green')" 
-                class="rounded-full border border-[var(--border)] cursor-pointer"
-                :style="selectedTheme === 'green' ? { width: '28px', height: '28px', boxShadow: '0 0 0 2px var(--accent)', backgroundColor: '#C7EDCC' } : { width: '28px', height: '28px', backgroundColor: '#C7EDCC' }"
-              ></button>
-              <button 
-                @click="setTheme('dark')" 
-                class="rounded-full border border-[var(--border)] cursor-pointer"
-                :style="selectedTheme === 'dark' ? { width: '28px', height: '28px', boxShadow: '0 0 0 2px var(--accent)', backgroundColor: '#1A1A1A' } : { width: '28px', height: '28px', backgroundColor: '#1A1A1A' }"
-              ></button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 其它标签页 -->
-        <div v-if="activeSettingTab === 'other'" class="space-y-4">
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">软件信息</h4>
-            <div class="text-sm text-[var(--text)] space-y-1">
-              <p>版本: v1.0.0</p>
-              <p>作者: Trae AI</p>
-              <p>描述: AI 听书小说阅读器</p>
-            </div>
-          </div>
-          <div>
-            <h4 class="text-sm font-medium text-[var(--text-h)] mb-2">数据管理</h4>
-            <button 
-              @click="clearAllData" 
-              class="w-full px-3 py-2 rounded-md border border-red-500 text-red-500 hover:bg-red-50 transition-colors"
-            >
-              清空所有书籍和缓存
-            </button>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+      </NDrawer>
+    </div>
+  </NConfigProvider>
 </template>
+
+<style>
+/* 全局 CSS 变量 */
+:root {
+  --bg-main: #FBFBFB;
+  --bg-paper: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-card: #F9F9F9;
+  --text-main: #2D3436;
+  --text-h: #000000;
+  --ui-color: #b88552;
+  --border: #e0e0e0;
+}
+
+/* 深色模式 */
+.dark {
+  --bg-main: #16171D;
+  --bg-paper: #1A1A1A;
+  --bg-sidebar: #21222D;
+  --bg-card: #1E1F2A;
+  --text-main: #A0A0A0;
+  --text-h: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.1);
+}
+</style>
 
 <style scoped>
 /* 自定义样式 */
 #app {
   font-family: var(--sans);
+}
+
+/* 阅读页容器（解决贴边） */
+.reader-layout {
+  max-width: 900px; /* 限制宽度 */
+  margin: 0 auto;
+  padding: 40px 60px !important; /* 强制两边留白 */
+  background-color: var(--bg-paper); /* 绑定到 --bg-paper */
+}
+
+/* 全局容器：确保背景色与阅读页一致 */
+.bookshelf-container {
+  min-height: 100vh;
+  background-color: var(--bg-sidebar); /* 同步阅读页颜色 */
+  padding: 40px 20px;
+}
+
+/* 内容限宽居中 */
+.bookshelf-content {
+  max-width: 680px; /* 限制宽度，防止长条过长 */
+  margin: 0 auto;
+}
+
+.shelf-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 24px;
+  padding-left: 8px;
+}
+
+/* 长条条目样式 */
+.book-row-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--bg-card); /* 使用卡片背景色 */
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(184, 133, 82, 0.05);
+}
+
+.book-row-item:hover {
+  transform: translateX(4px);
+  background-color: rgba(184, 133, 82, 0.05);
+  box-shadow: 0 4px 12px rgba(184, 133, 82, 0.1);
+}
+
+/* 微型封面：窄长比 */
+.book-cover-mini {
+  width: 42px;
+  height: 58px;
+  background: linear-gradient(135deg, #e6d5b8 0%, #d4bc96 100%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 18px;
+  flex-shrink: 0;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+.cover-text {
+  color: #8b7355;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* 详情区 */
+.book-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.book-name-row .name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-author {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* 操作按钮：默认隐藏，Hover 出现 */
+.book-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.book-row-item:hover .book-actions {
+  opacity: 1;
+}
+
+/* 强制同步大背景 */
+:deep(.n-drawer-content) {
+  background-color: var(--bg-main) !important;
+}
+
+/* 抽屉容器 */
+.drawer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg-main);
+}
+
+/* 抽屉头部 */
+.drawer-header {
+  padding: 20px 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--bg-main);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* 抽屉内容 */
+.drawer-content {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--bg-main);
+}
+.drawer-header .title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.drawer-header .count {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+/* 章节条目 */
+.chapter-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border-left: 3px solid transparent;
+}
+
+/* 序号样式 */
+.index-num {
+  font-family: "Fira Code", monospace; /* 使用等宽字体更有设计感 */
+  font-size: 0.8rem;
+  color: #bbb;
+  margin-right: 16px;
+  width: 24px;
+}
+
+/* 标题样式 */
+.chapter-title {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 悬浮效果：不要生硬地变色，用浅浅的灰色 */
+.chapter-item:hover {
+  background-color: rgba(184, 133, 82, 0.05);
+}
+
+/* 激活状态：精致的暖棕色方案 */
+.chapter-item.active {
+  background-color: rgba(184, 133, 82, 0.1);
+  border-left-color: #b88552;
+}
+.chapter-item.active .chapter-title {
+  color: #b88552;
+  font-weight: 600;
+}
+.chapter-item.active .index-num {
+  color: #b88552;
+  opacity: 0.7;
+}
+
+/* 侧边指示条：现代 UI 的灵魂 */
+.active-indicator {
+  position: absolute;
+  left: 0;
+  top: 25%;
+  height: 50%;
+  width: 3px;
+  background-color: #b88552;
+  border-radius: 0 4px 4px 0;
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+.chapter-item.active .active-indicator {
+  transform: scaleY(1);
+}
+
+/* 深色模式下的目录抽屉 */
+.dark .drawer-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .chapter-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .chapter-item.active {
+  background-color: rgba(184, 133, 82, 0.2);
+}
+
+/* 滚动条美化（隐藏多余的，统一风格） */
+:deep(.n-scrollbar-rail) {
+  width: 6px !important;
+}
+:deep(.n-scrollbar-rail--vertical) {
+  right: 2px !important;
+}
+
+/* 设置抽屉样式 */
+.modern-settings-drawer {
+  background-color: rgba(251, 247, 242, 0.8);
+  backdrop-filter: blur(10px);
+  color: var(--text-main);
+}
+
+/* 深色模式下的设置抽屉 */
+.dark .modern-settings-drawer {
+  background-color: rgba(22, 23, 29, 0.8);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 设置内容容器 */
+.settings-content {
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 设置卡片 */
+.setting-card {
+  /* 使用比大背景稍亮或稍暗的颜色，建议带一点透明度 */
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(184, 133, 82, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  margin-bottom: 16px;
+}
+
+.setting-card:hover {
+  box-shadow: 0 4px 12px rgba(184, 133, 82, 0.1);
+}
+
+/* 深色模式下的设置卡片 */
+.dark .setting-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 深色模式下的图标颜色 */
+.dark .n-button.n-button--quaternary .n-icon {
+  color: #e0e0e0 !important;
+}
+
+/* 深色模式下的标签页 */
+.dark .custom-tabs {
+  --n-tab-text-color: #94a3b8;
+  --n-tab-text-color-active: #b88552;
+}
+
+/* 书架背景色始终设置为比主背景色稍深/稍浅的一个梯度 */
+.bookshelf-container {
+  min-height: 100vh;
+  background-color: var(--bg-sidebar); /* 同步阅读页颜色 */
+  padding: 40px 20px;
+  filter: brightness(0.95);
+}
+
+/* 强制同步抽屉的大背景 */
+:deep(.n-drawer-content) {
+  background-color: var(--bg-main) !important;
+}
+
+/* 如果你使用的是嵌套的 div 容器 */
+.settings-content {
+  min-height: 100%;
+  background-color: var(--bg-main); /* 确保撑满全高 */
+  transition: background-color 0.3s ease;
+}
+
+/* 设置面板采用半透明磨砂质感，背景色跟随当前主题色 */
+.modern-settings-drawer {
+  background-color: var(--bg-main);
+  backdrop-filter: blur(10px);
+  color: var(--text-main);
+}
+
+/* 深色模式下的设置面板 */
+.dark .modern-settings-drawer {
+  background-color: var(--bg-main);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 自定义滑动条 */
+.custom-slider {
+  --n-slider-rail-background: #e0e0e0;
+  --n-slider-rail-fill-background: #b88552;
+  --n-slider-handle-background: white;
+  --n-slider-handle-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --n-slider-rail-height: 4px;
+}
+
+/* 自定义标签页 */
+.custom-tabs {
+  --n-tab-line-color: transparent;
+  --n-tab-text-color: #94a3b8;
+  --n-tab-text-color-active: #b88552;
+  --n-tab-border-radius: 20px;
+  --n-tab-padding: 8px 16px;
+  --n-tab-font-size: 14px;
+}
+
+/* 自定义开关 */
+.custom-switch {
+  --n-switch-button-background: white;
+  --n-switch-background: #e0e0e0;
+  --n-switch-background-active: #b88552;
+  --n-switch-button-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --n-switch-height: 20px;
+  --n-switch-width: 36px;
+}
+
+/* 主题选择样式 */
+.theme-circle-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* 基础圆圈样式 */
+.color-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 激活状态的环绕：不要直接贴着圆圈，要留 2px 的呼吸间距 */
+.theme-circle-wrapper.is-active .color-dot {
+  outline: 2px solid #b88552; /* 使用项目主色调 */
+  outline-offset: 3px;
+  transform: scale(0.9);
+}
+
+/* 【重点】黑色模式下的对比度处理 */
+.theme-circle-wrapper .color-dot[style*="#16171D"] {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important; /* 给黑色圆圈加一圈微光，防止隐身 */
+}
+
+/* 标签文字 */
+.theme-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 8px;
+  display: block;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.is-active .theme-label {
+  color: #b88552;
+  font-weight: 600;
+}
+
+/* 勾选小图标 */
+.active-check {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #b88552;
+  transition: all 0.3s ease;
+}
+
+/* 颜色选择器 */
+.color-picker {
+  transition: all 0.3s ease;
+}
+
+.color-picker:hover {
+  transform: scale(1.1);
 }
 </style>

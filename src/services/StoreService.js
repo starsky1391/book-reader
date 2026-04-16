@@ -62,16 +62,26 @@ class StoreService {
       
       // 确保目录存在
       const dir = path.dirname(this.configPath);
+      console.log('目录路径:', dir);
       if (!fs.existsSync(dir)) {
+        console.log('创建目录:', dir);
         fs.mkdirSync(dir, { recursive: true });
+        console.log('目录创建成功');
+      } else {
+        console.log('目录已存在');
       }
       
       // 写入配置文件
+      console.log('写入配置文件:', this.configPath);
+      console.log('配置文件是否存在:', fs.existsSync(this.configPath));
+      console.log('尝试写入配置文件...');
       fs.writeFileSync(this.configPath, JSON.stringify(data, null, 2));
+      console.log('写入配置文件成功');
       this.config = data;
       return true;
     } catch (error) {
       console.error('写入配置文件失败:', error);
+      console.error('错误堆栈:', error.stack);
       return false;
     }
   }
@@ -104,22 +114,37 @@ class StoreService {
 
   // 保存阅读进度
   saveReadingProgress(bookId, chapterIndex, lineIndex) {
-    const config = this.readConfig();
-    // 为每本书保存阅读进度
-    const bookIndex = config.books.findIndex(book => book.id === bookId);
-    if (bookIndex !== -1) {
-      config.books[bookIndex].readingProgress = { chapterIndex, lineIndex };
-      // 保存最后阅读的书籍 ID
-      config.settings.lastReadBookId = bookId;
-      this.writeConfig(config);
+    try {
+      const config = this.readConfig();
+      // 为每本书保存阅读进度，确保类型一致
+      const bookIndex = config.books.findIndex(book => book.id == bookId);
+      if (bookIndex !== -1) {
+        config.books[bookIndex].readingProgress = { chapterIndex, lineIndex };
+        // 保存最后阅读的书籍 ID
+        config.settings.lastReadBookId = bookId;
+        const success = this.writeConfig(config);
+        console.log('保存阅读进度成功:', { bookId, chapterIndex, lineIndex, success });
+      } else {
+        console.error('保存阅读进度失败：书籍不存在', bookId);
+      }
+    } catch (error) {
+      console.error('保存阅读进度失败:', error);
     }
   }
 
   // 获取阅读进度
   getReadingProgress(bookId) {
-    const config = this.readConfig();
-    const book = config.books.find(book => book.id === bookId);
-    return book?.readingProgress || { chapterIndex: 0, lineIndex: 0 };
+    try {
+      const config = this.readConfig();
+      // 确保类型一致
+      const book = config.books.find(book => book.id == bookId);
+      const progress = book?.readingProgress || { chapterIndex: 0, lineIndex: 0 };
+      console.log('获取阅读进度:', { bookId, progress, book: book?.id });
+      return progress;
+    } catch (error) {
+      console.error('获取阅读进度失败:', error);
+      return { chapterIndex: 0, lineIndex: 0 };
+    }
   }
 
   // 获取最后阅读的书籍 ID

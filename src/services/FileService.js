@@ -52,7 +52,7 @@ class FileService {
         }
         
         // 开始新章节
-        currentChapter = match[1]
+        currentChapter = line.trim() // 保存完整的章节标题
         currentContent = [line]
       } else {
         // 向当前内容添加行
