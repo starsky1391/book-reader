@@ -628,9 +628,9 @@ onUnmounted(async () => {
     }"
   >
     <!-- 左侧边栏 -->
-    <aside class="w-[240px] border-r border-[var(--border)] p-4 flex flex-col">
+    <aside class="sidebar w-[240px] border-r border-[var(--border)] p-4 flex flex-col">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-lg font-bold text-[var(--text-h)]">书架</h1>
+        <h1 class="text-lg font-bold text-white">书架</h1>
         <button 
           @click="importFile" 
           class="px-3 py-1 bg-[var(--accent)] text-white rounded-md hover:bg-opacity-90 transition-colors"
@@ -645,16 +645,17 @@ onUnmounted(async () => {
           <li 
             v-for="book in books" 
             :key="book.id"
-            class="book-item p-3 rounded-md hover:bg-[var(--accent-bg)] cursor-pointer transition-colors flex justify-between items-start relative"
+            class="book-item" 
+            :class="{ 'selected': currentBook.id === book.id }"
             @click="loadBook(book.id)"
           >
             <div>
-              <h3 class="font-medium text-sm text-[var(--text-h)]">{{ book.title }}</h3>
-              <p class="text-xs text-[var(--text)]">{{ book.author }}</p>
+              <h3 class="font-medium text-sm">{{ book.title }}</h3>
+              <p class="text-xs">{{ book.author }}</p>
             </div>
             <button 
               @click.stop="deleteBook(book.id)"
-              class="delete-btn px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs opacity-0 visibility-hidden hover:opacity-100 hover:visibility-visible transition-all"
+              class="delete-btn px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs"
             >
               删除
             </button>
@@ -663,7 +664,7 @@ onUnmounted(async () => {
       </div>
       
       <!-- 版本号 -->
-      <div class="mt-6 text-xs text-[var(--text)] opacity-50 text-center">
+      <div class="mt-6 text-xs opacity-50 text-center">
         v1.0.0
       </div>
     </aside>
@@ -690,26 +691,24 @@ onUnmounted(async () => {
       </header>
       
       <!-- 文本显示区 -->
-      <div class="flex-1 p-6 overflow-y-auto">
-        <div class="max-w-2xl mx-auto">
-          <pre class="whitespace-pre-wrap text-[var(--text)] leading-relaxed">{{ currentBook.content }}</pre>
-        </div>
+      <div class="flex-1 overflow-y-auto">
+        <pre class="whitespace-pre-wrap text-[var(--text)] leading-relaxed">{{ currentBook.content }}</pre>
       </div>
       
       <!-- 底部控制栏 -->
-      <footer class="border-t border-[var(--border)] p-4 flex justify-between items-center">
+      <footer class="bottom-controls border-t border-[var(--border)] p-4 flex justify-between items-center">
         <div class="flex space-x-2">
           <button 
             @click="changeChapter(-1)" 
             :disabled="currentBook.chapters && currentBook.currentChapterIndex === 0"
-            class="px-3 py-1 border border-[var(--border)] rounded-md hover:bg-[var(--accent-bg)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             上一章
           </button>
           <button 
             @click="changeChapter(1)" 
             :disabled="currentBook.chapters && currentBook.currentChapterIndex === currentBook.chapters.length - 1"
-            class="px-3 py-1 border border-[var(--border)] rounded-md hover:bg-[var(--accent-bg)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             下一章
           </button>
@@ -717,13 +716,13 @@ onUnmounted(async () => {
         <div class="flex space-x-2 items-center">
           <button 
             @click="togglePlay" 
-            class="px-3 py-1 border border-[var(--border)] rounded-md hover:bg-[var(--accent-bg)] transition-colors"
+            class="px-3 py-1 rounded-md transition-colors"
           >
             {{ isPlaying ? '暂停' : '开始听书' }}
           </button>
           <button 
             @click="stopPlay" 
-            class="px-3 py-1 border border-[var(--border)] rounded-md hover:bg-[var(--accent-bg)] transition-colors"
+            class="px-3 py-1 rounded-md transition-colors"
           >
             停止
           </button>
@@ -762,7 +761,7 @@ onUnmounted(async () => {
       <!-- 设置面板 -->
       <div 
         v-if="activePanel === 'settings'" 
-        class="fixed top-0 right-0 h-full w-80 bg-[var(--bg)] border-l border-[var(--border)] p-4 overflow-y-auto z-50"
+        class="settings-drawer fixed top-0 right-0 h-full w-80 border-l border-[var(--border)] p-4 overflow-y-auto z-50"
       >
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-bold text-[var(--text-h)]">设置</h3>
