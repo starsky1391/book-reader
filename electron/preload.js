@@ -1,7 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
-console.log('preload.js 加载成功');
-
 // 暴露 Electron API 到渲染进程
 contextBridge.exposeInMainWorld('electron', {
   dialog: {
@@ -10,23 +8,18 @@ contextBridge.exposeInMainWorld('electron', {
   file: {
     readFile: (filePath) => ipcRenderer.invoke('file:readFile', filePath),
     getFileInfo: (filePath) => ipcRenderer.invoke('file:getFileInfo', filePath),
-    parseChapters: (content) => ipcRenderer.invoke('file:parseChapters', content),
-    copyFileToLibrary: (sourcePath) => ipcRenderer.invoke('file:copyFileToLibrary', sourcePath)
+    parseChapters: (content, type = 'txt', filePath = null) => 
+      ipcRenderer.invoke('file:parseChapters', content, type, filePath),
+    copyFileToLibrary: (sourcePath) => ipcRenderer.invoke('file:copyFileToLibrary', sourcePath),
+    getEpubCover: (epubPath) => ipcRenderer.invoke('file:getEpubCover', epubPath)
   },
   store: {
     getSettings: () => ipcRenderer.invoke('store:getSettings'),
-    saveSettings: (settings) => {
-      console.log('保存设置:', settings);
-      return ipcRenderer.invoke('store:saveSettings', settings);
-    },
+    saveSettings: (settings) => ipcRenderer.invoke('store:saveSettings', settings),
     getBooks: () => ipcRenderer.invoke('store:getBooks'),
     saveBooks: (books) => {
-      console.log('保存书架数据:', books);
-      console.log('书架数据类型:', typeof books);
-      console.log('书架数据是否为数组:', Array.isArray(books));
       try {
-        const serialized = JSON.stringify(books);
-        console.log('书架数据可序列化');
+        JSON.stringify(books);
         return ipcRenderer.invoke('store:saveBooks', books);
       } catch (error) {
         console.error('书架数据序列化失败:', error);
@@ -44,8 +37,6 @@ contextBridge.exposeInMainWorld('electron', {
     getBooks: () => ipcRenderer.invoke('get-library-books')
   }
 })
-
-console.log('Electron API 暴露成功');
 
 window.addEventListener('DOMContentLoaded', () => {
   const replaceText = (selector, text) => {

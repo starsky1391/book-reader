@@ -2,6 +2,8 @@
   "name": "book",
   "private": true,
   "version": "2.0.0",
+  "description": "A lightweight desktop novel reader based on Electron + Vue3 + Vite",
+  "author": "starsky1391",
   "main": "electron/main.js",
   "type": "commonjs",
   "scripts": {
@@ -13,8 +15,10 @@
   "dependencies": {
     "@vicons/ionicons5": "^0.13.0",
     "electron-store": "^11.0.2",
+    "epub": "^2.1.1",
     "iconv-lite": "^0.7.2",
     "naive-ui": "^2.44.1",
+    "pinia": "^3.0.4",
     "vfonts": "^0.0.3",
     "vue": "^3.5.32"
   },
@@ -32,5 +36,23 @@
     "vite": "^8.0.4",
     "vite-plugin-electron": "^0.29.1",
     "vue-tsc": "^3.2.6"
+  },
+  "build": {
+    "appId": "com.book.reader",
+    "productName": "Book Reader",
+    "files": [
+      "electron/main.js",
+      "electron/preload.js",
+      "src/services/**/*",
+      "dist/index.html",
+      "dist/assets/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable"
+    }
   }
 }

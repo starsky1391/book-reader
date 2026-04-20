@@ -7,15 +7,12 @@ function ensureDirectories() {
   try {
     // 获取用户数据目录
     const userDataPath = app.getPath('userData')
-    console.log('用户数据目录:', userDataPath)
     
     // 创建 library 文件夹
     const libraryPath = path.join(userDataPath, 'library')
-    console.log('库目录:', libraryPath)
     
     // 确保目录存在
     if (!fs.existsSync(libraryPath)) {
-      console.log('创建库目录:', libraryPath)
       fs.mkdirSync(libraryPath, { recursive: true })
     }
     
@@ -27,9 +24,6 @@ function ensureDirectories() {
 }
 
 function createWindow() {
-  console.log('创建窗口...');
-  console.log('preload 路径:', path.join(__dirname, 'preload.js'));
-  
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -48,10 +42,6 @@ function createWindow() {
   // mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
   
   // 监听 webContents 事件
-  mainWindow.webContents.on('did-finish-load', () => {
-    console.log('页面加载完成');
-  });
-  
   mainWindow.webContents.on('preload-error', (event, preloadPath, error) => {
     console.error('preload 错误:', error);
   });
@@ -80,9 +70,9 @@ ipcMain.handle('file:getFileInfo', (event, filePath) => {
     return { name: '', ext: '', size: 0, mtime: new Date() }
   }
 })
-ipcMain.handle('file:parseChapters', (event, content) => {
+ipcMain.handle('file:parseChapters', (event, content, type = 'txt', filePath = null) => {
   try {
-    return FileService.parseChapters(content)
+    return FileService.parseChapters(content, type, filePath)
   } catch (error) {
     console.error('解析章节失败:', error)
     return []
@@ -106,7 +96,6 @@ ipcMain.handle('file:copyFileToLibrary', (event, sourcePath) => {
     try {
       // 复制文件
       fs.copyFileSync(sourcePath, targetPath)
-      console.log('文件复制成功:', sourcePath, '->', targetPath)
       return { success: true, path: targetPath }
     } catch (copyError) {
       console.error('复制文件失败:', copyError)
@@ -117,6 +106,14 @@ ipcMain.handle('file:copyFileToLibrary', (event, sourcePath) => {
     console.error('复制文件失败:', error)
     // 如果发生其他错误，使用原始文件路径
     return { success: true, path: sourcePath, error: error.message }
+  }
+})
+ipcMain.handle('file:getEpubCover', async (event, epubPath) => {
+  try {
+    return await FileService.getEpubCover(epubPath)
+  } catch (error) {
+    console.error('获取 EPUB 封面失败:', error)
+    return null
   }
 })
 
@@ -181,11 +178,9 @@ ipcMain.handle('get-library-books', (event) => {
     
     // 读取库目录下的所有文件
     const files = fs.readdirSync(libraryPath)
-    console.log('库目录文件:', files)
     
     // 过滤出TXT文件
     const txtFiles = files.filter(file => path.extname(file) === '.txt')
-    console.log('TXT文件:', txtFiles)
     
     // 构建书籍列表
     const books = txtFiles.map(file => {
@@ -201,7 +196,6 @@ ipcMain.handle('get-library-books', (event) => {
       }
     })
     
-    console.log('库目录书籍:', books)
     return books
   } catch (error) {
     console.error('获取库目录书籍失败:', error)
