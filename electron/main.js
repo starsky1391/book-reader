@@ -2,6 +2,9 @@ const { app, BrowserWindow, dialog, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs')
 
+// 禁用 GPU 硬件加速，避免缓存权限问题
+app.disableHardwareAcceleration()
+
 // 确保存储目录存在
 function ensureDirectories() {
   try {

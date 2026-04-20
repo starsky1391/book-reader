@@ -421,44 +421,32 @@ class FileService {
       const epub = new EPub(epubPath)
       await epub.parse()
       
-      // console.log('[封面] EPUB 解析成功')
-      // console.log('[封面] flow 数量:', epub.flow?.length)
-      
       if (!epub.flow || epub.flow.length === 0) {
-        console.log('[封面] 没有 flow')
         return null
       }
       
       const firstChapter = epub.flow[0]
-      // console.log('[封面] 第一章 ID:', firstChapter.id)
-      
       const manifestMap = this.buildManifestMap(epub)
       const content = await epub.getChapter(firstChapter.id)
       
-      // console.log('[封面] 第一章内容长度:', content?.length)
-      
       // 匹配所有图片类型
       const patterns = [
-        { regex: /<img[^>]+src=["']([^"']+)["'][^>]*>/i, name: 'img' },
-        { regex: /<image[^>]+xlink:href=["']([^"']+)["'][^>]*>/i, name: 'svg-xlink' },
-        { regex: /<image[^>]+href=["']([^"']+)["'][^>]*>/i, name: 'svg-href' }
+        /<img[^>]+src=["']([^"']+)["'][^>]*>/i,
+        /<image[^>]+xlink:href=["']([^"']+)["'][^>]*>/i,
+        /<image[^>]+href=["']([^"']+)["'][^>]*>/i
       ]
       
-      for (const { regex, name } of patterns) {
+      for (const regex of patterns) {
         const match = content.match(regex)
         if (match && match[1]) {
-          // console.log(`[封面] 找到 ${name} 图片:`, match[1])
           const imageId = this.findImageId(match[1], manifestMap)
-          // console.log('[封面] 图片 ID:', imageId)
           if (imageId) {
             const cover = await this.loadEpubImage(epub, imageId, new Map())
-            // console.log('[封面] 加载结果:', cover ? '成功' : '失败')
             if (cover) return cover
           }
         }
       }
       
-      console.log('[封面] 未找到图片')
       return null
     } catch (error) {
       console.error('获取 EPUB 封面失败:', error)

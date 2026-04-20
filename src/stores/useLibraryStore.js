@@ -304,12 +304,8 @@ export const useLibraryStore = defineStore('library', () => {
       }
     }
     
-    const lastReadBookId = await window.electron.store.getLastReadBookId()
-    if (lastReadBookId) {
-      await loadBook(lastReadBookId)
-    } else if (books.value.length > 0) {
-      await loadBook(books.value[0].id)
-    }
+    // 不再自动加载书籍，保持书架视图
+    // 用户需要手动点击书籍进入阅读视图
   }
 
   return {

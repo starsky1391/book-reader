@@ -5,9 +5,13 @@ import {
 } from 'naive-ui'
 import { useReaderStore } from '../stores/useReaderStore'
 import { useLibraryStore } from '../stores/useLibraryStore'
+import { ref } from 'vue'
 
 const readerStore = useReaderStore()
 const libraryStore = useLibraryStore()
+
+// 当前选中的 tab
+const activeTab = ref('preference')
 
 // 字体选项
 const fontOptions = [
@@ -78,7 +82,7 @@ const handleClearAll = () => {
     title="设置"
   >
     <div class="settings-content">
-      <NTabs value="preference" type="card" class="custom-tabs">
+      <NTabs v-model:value="activeTab" type="card" class="custom-tabs">
         <NTabPane name="preference" tab="偏好">
           <div class="p-4 space-y-4">
             <div class="setting-card">

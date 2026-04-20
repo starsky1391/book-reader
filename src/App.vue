@@ -1,21 +1,25 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
-import { NConfigProvider, NLayout, NLayoutSider, NLayoutContent } from 'naive-ui'
+import { NConfigProvider } from 'naive-ui'
 import { zhCN } from 'naive-ui'
 
 // Stores
 import { useReaderStore } from './stores/useReaderStore'
 import { useLibraryStore } from './stores/useLibraryStore'
+import { useViewStore } from './stores/useViewStore'
 
-// 组件
-import LibrarySidebar from './components/LibrarySidebar.vue'
-import ReaderContent from './components/ReaderContent.vue'
-import SettingsDrawer from './components/SettingsDrawer.vue'
+// Views
+import LibraryView from './views/LibraryView.vue'
+import ReaderView from './views/ReaderView.vue'
+
+// Components
 import DirectoryDrawer from './components/DirectoryDrawer.vue'
+import SettingsDrawer from './components/SettingsDrawer.vue'
 
 // 使用 stores
 const readerStore = useReaderStore()
 const libraryStore = useLibraryStore()
+const viewStore = useViewStore()
 
 // ==================== 听书控制 ====================
 function togglePlay() {
@@ -106,36 +110,16 @@ onUnmounted(() => {
       }"
       class="h-screen w-full overflow-hidden"
     >
-      <NLayout position="absolute" has-sider class="h-full w-full">
-        <!-- 左侧书架 -->
-        <NLayoutSider 
-          collapse-mode="width" 
-          :width="300" 
-          :collapsed-width="64" 
-          class="bg-[var(--bg-sidebar)] text-[var(--text-main)]"
-        >
-          <LibrarySidebar 
-            :books="libraryStore.books"
-            :current-book="libraryStore.currentBook"
-            @select-book="libraryStore.loadBook"
-            @import-file="libraryStore.importFile"
-            @delete-book="libraryStore.deleteBook"
-          />
-        </NLayoutSider>
-        
-        <!-- 右侧阅读区 -->
-        <NLayoutContent class="bg-[var(--bg)] text-[var(--text)]">
-          <ReaderContent 
-            :current-book="libraryStore.currentBook"
-            :is-playing="readerStore.isPlaying"
-            @toggle-play="togglePlay"
-            @stop-play="stopPlay"
-            @change-chapter="changeChapter"
-            @toggle-directory="readerStore.toggleDirectoryDrawer"
-            @toggle-settings="readerStore.toggleSettingsDrawer"
-          />
-        </NLayoutContent>
-      </NLayout>
+      <!-- 书架视图 -->
+      <LibraryView v-if="viewStore.currentView === 'library'" />
+      
+      <!-- 阅读视图 -->
+      <ReaderView 
+        v-else-if="viewStore.currentView === 'reader'"
+        @toggle-play="togglePlay"
+        @stop-play="stopPlay"
+        @change-chapter="changeChapter"
+      />
       
       <!-- 目录抽屉 -->
       <DirectoryDrawer 
@@ -174,7 +158,7 @@ onUnmounted(() => {
 
 <style>
 /* 全局 CSS 变量 */
-:root {
+::root {
   --bg-main: #FBFBFB;
   --bg-paper: #FFFFFF;
   --bg-sidebar: #FFFFFF;
