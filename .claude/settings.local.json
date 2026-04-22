@@ -11,7 +11,9 @@
       "Bash(python -m edge_tts --list-voices --language=zh-CN)",
       "Bash(python -m edge_tts -l)",
       "Bash(node *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *更新了听书功能和ui)",
+      "Bash(git push *)"
     ]
   }
 }

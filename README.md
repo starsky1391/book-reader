@@ -8,7 +8,7 @@
 
 ## 展示图
 
-![Book Reader](DisplayImage.png)
+![Book Reader](DisplayImage.jpg)
 
 ## 功能特点
 
