@@ -20,9 +20,21 @@ export const useReaderStore = defineStore('reader', () => {
 
   // ==================== 听书控制 ====================
   const isPlaying = ref(false)
+  const isPaused = ref(false)
   const currentSpeed = ref(1.0)
   const currentSentenceIndex = ref(0)
   const autoContinue = ref(true)
+  const ttsProgress = ref(0)
+  const currentReadingText = ref('')  // 当前正在朗读的文本（用于高亮）
+
+  // ==================== TTS 配置 ====================
+  const ttsConfig = ref({
+    engine: 'web',           // 'web' | 'edge' | 'azure'
+    voice: 'xiaoxiao',
+    enablePause: true,
+    enableDialogue: true,
+    enableEmotion: true
+  })
 
   // ==================== 抽屉状态 ====================
   const directoryDrawerVisible = ref(false)
@@ -188,15 +200,19 @@ export const useReaderStore = defineStore('reader', () => {
     letterSpacing,
     textAlign,
     isPlaying,
+    isPaused,
     currentSpeed,
     currentSentenceIndex,
     autoContinue,
+    ttsProgress,
+    ttsConfig,
+    currentReadingText,
     directoryDrawerVisible,
     settingsDrawerVisible,
-    
+
     // 计算属性
     themeVars,
-    
+
     // Actions
     setTheme,
     saveTextSettings,

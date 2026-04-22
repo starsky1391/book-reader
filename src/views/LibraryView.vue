@@ -1,10 +1,10 @@
 <script setup>
-import { NButton, NIcon, NEmpty } from 'naive-ui'
-import { Trash } from '@vicons/ionicons5'
+import { NButton, NEmpty } from 'naive-ui'
 import { useLibraryStore } from '../stores/useLibraryStore'
 import { useViewStore } from '../stores/useViewStore'
 import { useReaderStore } from '../stores/useReaderStore'
 import AppSidebar from '../components/AppSidebar.vue'
+import BookCard from '../components/BookCard.vue'
 
 const libraryStore = useLibraryStore()
 const viewStore = useViewStore()
@@ -23,6 +23,18 @@ const handleImport = () => {
 
 const handleSettings = () => {
   readerStore.toggleSettingsDrawer()
+}
+
+const handleDeleteBook = async (bookId) => {
+  await libraryStore.deleteBook(bookId)
+}
+
+const handleUpdateBook = async (updatedBook) => {
+  await libraryStore.updateBook(updatedBook.id, {
+    title: updatedBook.title,
+    author: updatedBook.author,
+    cover: updatedBook.cover
+  })
 }
 </script>
 
@@ -48,36 +60,14 @@ const handleSettings = () => {
         
         <!-- 书籍网格 -->
         <div v-if="libraryStore.hasBooks" class="books-grid">
-          <div 
-            v-for="book in libraryStore.books" 
+          <BookCard
+            v-for="book in libraryStore.books"
             :key="book.id"
-            class="book-card"
-            @click="handleSelectBook(book.id)"
-          >
-            <!-- 封面 -->
-            <div class="book-cover">
-              <img 
-                v-if="book.cover" 
-                :src="book.cover" 
-                class="cover-image"
-                alt="封面"
-              />
-              <div v-else class="cover-placeholder">
-                <span>{{ book.title.charAt(0) }}</span>
-              </div>
-              
-              <!-- 删除按钮 -->
-              <div class="delete-btn" @click.stop="libraryStore.deleteBook(book.id)">
-                <NIcon size="18"><Trash /></NIcon>
-              </div>
-            </div>
-            
-            <!-- 书籍信息 -->
-            <div class="book-info">
-              <h3 class="book-title">{{ book.title }}</h3>
-              <p class="book-author">{{ book.author }}</p>
-            </div>
-          </div>
+            :book="book"
+            @select="handleSelectBook"
+            @delete="handleDeleteBook"
+            @update="handleUpdateBook"
+          />
         </div>
         
         <!-- 空状态 -->
@@ -134,100 +124,6 @@ const handleSettings = () => {
   display: grid;
   grid-template-columns: repeat(auto-fill, 150px);
   gap: 32px;
-}
-
-/* 书籍卡片 */
-.book-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.book-card:hover {
-  transform: translateY(-8px);
-}
-
-.book-card:hover .book-cover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
-
-.book-cover {
-  position: relative;
-  width: 150px;
-  height: 225px; /* 2:3 比例 */
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
-  background: linear-gradient(135deg, #e6d5b8 0%, #d4bc96 100%);
-}
-
-.cover-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cover-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cover-placeholder span {
-  font-size: 48px;
-  font-weight: 700;
-  color: #8b7355;
-}
-
-.delete-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.book-card:hover .delete-btn {
-  opacity: 1;
-}
-
-.delete-btn:hover {
-  background: rgba(220, 38, 38, 0.9);
-}
-
-.book-info {
-  padding: 12px 4px;
-  width: 150px;
-}
-
-.book-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-main);
-  margin: 0 0 4px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.book-author {
-  font-size: 12px;
-  color: var(--text-main);
-  opacity: 0.6;
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .empty-state {

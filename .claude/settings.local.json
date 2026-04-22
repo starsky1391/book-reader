@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c electron/../src/services/TTSEngine.js)",
+      "Bash(npm run *)",
+      "Bash(node -e \"const TTSEngine = require\\('./src/services/TTSEngine.js'\\); TTSEngine.checkEdgeTTS\\(\\).then\\(r => console.log\\('Edge TTS available:', r\\)\\);\")",
+      "Bash(node -e \"import\\('./src/services/TTSServicePro.js'\\).then\\(\\(\\) => console.log\\('TTSServicePro.js syntax OK'\\)\\).catch\\(e => console.error\\('Error:', e.message\\)\\)\")",
+      "Bash(esbuild TTSServicePro.js --format=esm --bundle --outfile=/dev/null)",
+      "Bash(node -c src/services/TTSEngine.js)",
+      "Bash(node -e ' *)",
+      "Bash(python -m edge_tts --list-voices --language=zh-CN)",
+      "Bash(python -m edge_tts -l)",
+      "Bash(node *)",
+      "Bash(git add *)"
+    ]
+  }
+}

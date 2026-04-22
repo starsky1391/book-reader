@@ -75,14 +75,30 @@ export const useLibraryStore = defineStore('library', () => {
       }
       
       const readingProgress = await window.electron.store.getReadingProgress(bookId)
-      
+
+      // 获取 TTS 进度
+      let ttsProgress = 0
+      try {
+        const settings = await window.electron.store.getSettings()
+        if (settings.ttsProgress && settings.ttsProgress.bookId === bookId) {
+          ttsProgress = settings.ttsProgress.chapterIndex === readingProgress.chapterIndex
+            ? settings.ttsProgress.segmentIndex
+            : 0
+        }
+      } catch (e) {
+        ttsProgress = 0
+      }
+
       currentBook.value = {
         id: book.id,
         title: book.title,
+        author: book.author,
+        cover: book.cover,
         content: content,
         chapters: chapters,
         currentChapterIndex: readingProgress.chapterIndex || 0,
-        type: fileType
+        type: fileType,
+        ttsProgress: ttsProgress
       }
 
       showChapterContent(currentBook.value.currentChapterIndex)
@@ -194,6 +210,28 @@ export const useLibraryStore = defineStore('library', () => {
       return true
     } catch (error) {
       console.error('删除书籍失败:', error)
+      return false
+    }
+  }
+
+  /**
+   * 更新书籍信息
+   */
+  async function updateBook(bookId, updates) {
+    try {
+      const updatedBook = await window.electron.store.updateBook(bookId, updates)
+      if (!updatedBook) return false
+      
+      await loadBooks()
+      
+      // 如果更新的是当前阅读的书籍，同步更新 currentBook
+      if (currentBook.value.id === bookId) {
+        currentBook.value.title = updatedBook.title
+      }
+      
+      return true
+    } catch (error) {
+      console.error('更新书籍失败:', error)
       return false
     }
   }
@@ -324,6 +362,7 @@ export const useLibraryStore = defineStore('library', () => {
     loadBook,
     importFile,
     deleteBook,
+    updateBook,
     showChapterContent,
     saveReadingProgress,
     changeChapter,

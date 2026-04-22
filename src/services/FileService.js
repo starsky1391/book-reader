@@ -453,6 +453,35 @@ class FileService {
       return null
     }
   }
+
+  /**
+   * 读取图片文件并转换为 base64
+   * @param {string} imagePath - 图片文件路径
+   * @returns {Promise<string|null>} - base64 格式的图片数据，或 null
+   */
+  static async readImageAsBase64(imagePath) {
+    try {
+      const ext = path.extname(imagePath).toLowerCase()
+      const mimeTypes = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+        '.bmp': 'image/bmp',
+        '.svg': 'image/svg+xml'
+      }
+      
+      const mimeType = mimeTypes[ext] || 'image/jpeg'
+      const buffer = fs.readFileSync(imagePath)
+      const base64 = buffer.toString('base64')
+      
+      return `data:${mimeType};base64,${base64}`
+    } catch (error) {
+      console.error('读取图片失败:', error)
+      return null
+    }
+  }
 }
 
 module.exports = FileService

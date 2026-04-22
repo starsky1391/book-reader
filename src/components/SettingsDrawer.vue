@@ -1,7 +1,6 @@
 <script setup>
-import { 
-  NDrawer, NTabs, NTabPane, NSlider, NSwitch, NSelect, 
-  NRadioGroup, NRadio, NButton 
+import {
+  NDrawer, NTabs, NTabPane, NSlider, NRadioGroup, NRadio, NButton, NSelect
 } from 'naive-ui'
 import { useReaderStore } from '../stores/useReaderStore'
 import { useLibraryStore } from '../stores/useLibraryStore'
@@ -11,7 +10,7 @@ const readerStore = useReaderStore()
 const libraryStore = useLibraryStore()
 
 // 当前选中的 tab
-const activeTab = ref('preference')
+const activeTab = ref('text')
 
 // 字体选项
 const fontOptions = [
@@ -32,10 +31,6 @@ const themeOptions = [
 
 const handleClose = () => {
   readerStore.settingsDrawerVisible = false
-}
-
-const handleSpeedChange = (value) => {
-  readerStore.setSpeed(value)
 }
 
 const handleFontFamilyChange = (value) => {
@@ -73,7 +68,7 @@ const handleClearAll = () => {
 </script>
 
 <template>
-  <NDrawer 
+  <NDrawer
     :show="readerStore.settingsDrawerVisible"
     @update:show="handleClose"
     :width="500"
@@ -83,58 +78,26 @@ const handleClearAll = () => {
   >
     <div class="settings-content">
       <NTabs v-model:value="activeTab" type="card" class="custom-tabs">
-        <NTabPane name="preference" tab="偏好">
-          <div class="p-4 space-y-4">
-            <div class="setting-card">
-              <h4 class="text-sm font-medium mb-3">
-                听书设置 <span class="text-xs text-gray-500">{{ readerStore.currentSpeed.toFixed(1) }}x</span>
-              </h4>
-              <NSlider 
-                :value="readerStore.currentSpeed" 
-                :min="0.5" 
-                :max="2.0" 
-                :step="0.1" 
-                @update:value="handleSpeedChange"
-                class="custom-slider"
-              />
-              <div class="flex justify-between text-xs mt-1">
-                <span>0.5x</span>
-                <span>2.0x</span>
-              </div>
-            </div>
-            <div class="setting-card">
-              <h4 class="text-sm font-medium mb-3">播放逻辑</h4>
-              <div class="flex items-center justify-between">
-                <span class="text-sm">自动连读下一章</span>
-                <NSwitch 
-                  v-model:value="readerStore.autoContinue" 
-                  class="custom-switch" 
-                />
-              </div>
-            </div>
-          </div>
-        </NTabPane>
-        
         <NTabPane name="text" tab="文字">
           <div class="p-4 space-y-4">
             <div class="setting-card">
               <h4 class="text-sm font-medium mb-3">字体库</h4>
-              <NSelect 
-                :value="readerStore.fontFamily" 
-                :options="fontOptions" 
+              <NSelect
+                :value="readerStore.fontFamily"
+                :options="fontOptions"
                 @update:value="handleFontFamilyChange"
-                class="w-full" 
+                class="w-full"
               />
             </div>
             <div class="setting-card">
               <h4 class="text-sm font-medium mb-3">
                 字体大小 <span class="text-xs text-gray-500">{{ readerStore.fontSize }}px</span>
               </h4>
-              <NSlider 
-                :value="readerStore.fontSize" 
-                :min="12" 
-                :max="40" 
-                :step="1" 
+              <NSlider
+                :value="readerStore.fontSize"
+                :min="12"
+                :max="40"
+                :step="1"
                 @update:value="handleFontSizeChange"
                 class="custom-slider"
               />
@@ -147,11 +110,11 @@ const handleClearAll = () => {
               <h4 class="text-sm font-medium mb-3">
                 行间距 <span class="text-xs text-gray-500">{{ readerStore.lineHeight }}</span>
               </h4>
-              <NSlider 
-                :value="readerStore.lineHeight" 
-                :min="1.0" 
-                :max="2.0" 
-                :step="0.1" 
+              <NSlider
+                :value="readerStore.lineHeight"
+                :min="1.0"
+                :max="2.0"
+                :step="0.1"
                 @update:value="handleLineHeightChange"
                 class="custom-slider"
               />
@@ -164,11 +127,11 @@ const handleClearAll = () => {
               <h4 class="text-sm font-medium mb-3">
                 字符间距 <span class="text-xs text-gray-500">{{ readerStore.letterSpacing }}px</span>
               </h4>
-              <NSlider 
-                :value="readerStore.letterSpacing" 
-                :min="0" 
-                :max="2" 
-                :step="0.1" 
+              <NSlider
+                :value="readerStore.letterSpacing"
+                :min="0"
+                :max="2"
+                :step="0.1"
                 @update:value="handleLetterSpacingChange"
                 class="custom-slider"
               />
@@ -179,8 +142,8 @@ const handleClearAll = () => {
             </div>
             <div class="setting-card">
               <h4 class="text-sm font-medium mb-3">对齐方式</h4>
-              <NRadioGroup 
-                :value="readerStore.textAlign" 
+              <NRadioGroup
+                :value="readerStore.textAlign"
                 @update:value="handleTextAlignChange"
               >
                 <div class="flex space-x-4">
@@ -191,24 +154,24 @@ const handleClearAll = () => {
             </div>
           </div>
         </NTabPane>
-        
+
         <NTabPane name="background" tab="阅读背景">
           <div class="p-4 space-y-4">
             <div class="setting-card">
               <h4 class="text-sm font-medium mb-3">主题选择</h4>
               <div class="flex space-x-5 mt-4">
-                <div 
-                  v-for="theme in themeOptions" 
-                  :key="theme.key" 
-                  @click="handleThemeChange(theme.key)" 
-                  class="theme-circle-wrapper" 
+                <div
+                  v-for="theme in themeOptions"
+                  :key="theme.key"
+                  @click="handleThemeChange(theme.key)"
+                  class="theme-circle-wrapper"
                   :class="{ 'is-active': readerStore.selectedTheme === theme.key }"
                 >
-                  <div 
-                    class="color-dot" 
-                    :style="{ 
-                      backgroundColor: theme.color, 
-                      border: theme.key === 'white' ? '1px solid #ddd' : 'none' 
+                  <div
+                    class="color-dot"
+                    :style="{
+                      backgroundColor: theme.color,
+                      border: theme.key === 'white' ? '1px solid #ddd' : 'none'
                     }"
                   >
                     <div v-if="readerStore.selectedTheme === theme.key" class="active-check"></div>
@@ -219,17 +182,18 @@ const handleClearAll = () => {
             </div>
           </div>
         </NTabPane>
-        
+
         <NTabPane name="other" tab="其它">
           <div class="p-4 space-y-4">
             <div class="setting-card">
               <h4 class="text-sm font-medium mb-3">关于</h4>
-              <p class="text-sm">Book Reader v1.0.0</p>
+              <p class="text-sm">Book Reader v2.1.0</p>
               <p class="text-sm">一个轻量级的桌面小说阅读器</p>
+              <p class="text-xs text-gray-500 mt-2">支持 Edge TTS 高质量语音合成</p>
             </div>
             <div class="setting-card">
-              <NButton 
-                @click="handleClearAll" 
+              <NButton
+                @click="handleClearAll"
                 class="w-full"
                 type="warning"
                 quaternary

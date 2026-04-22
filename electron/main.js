@@ -5,6 +5,9 @@ const fs = require('fs')
 // 禁用 GPU 硬件加速，避免缓存权限问题
 app.disableHardwareAcceleration()
 
+// TTS 引擎
+const TTSEngine = require('../src/services/TTSEngine')
+
 // 确保存储目录存在
 function ensureDirectories() {
   try {
@@ -19,6 +22,9 @@ function ensureDirectories() {
       fs.mkdirSync(libraryPath, { recursive: true })
     }
     
+    // 确保 TTS 缓存目录
+    TTSEngine.initCacheDir(userDataPath)
+
     return { userDataPath, libraryPath }
   } catch (error) {
     console.error('确保目录存在失败:', error)
@@ -38,7 +44,7 @@ function createWindow() {
   })
 
   // 加载 Vite 开发服务器
-  mainWindow.loadURL('http://localhost:5173/')
+  mainWindow.loadURL('http://localhost:5174/')
   mainWindow.webContents.openDevTools()
 
   // 当应用打包后，加载本地文件
@@ -119,6 +125,14 @@ ipcMain.handle('file:getEpubCover', async (event, epubPath) => {
     return null
   }
 })
+ipcMain.handle('file:readImageAsBase64', async (event, imagePath) => {
+  try {
+    return await FileService.readImageAsBase64(imagePath)
+  } catch (error) {
+    console.error('读取图片失败:', error)
+    return null
+  }
+})
 
 // 处理渲染进程的存储操作请求
 const StoreService = require('../src/services/StoreService')
@@ -160,6 +174,15 @@ ipcMain.handle('store:addBook', (event, book) => {
 ipcMain.handle('store:deleteBook', (event, bookId) => {
   return StoreService.deleteBook(bookId)
 })
+ipcMain.handle('store:updateBook', (event, bookId, updates) => {
+  try {
+    const serializableUpdates = JSON.parse(JSON.stringify(updates))
+    return StoreService.updateBook(bookId, serializableUpdates)
+  } catch (error) {
+    console.error('更新书籍失败:', error)
+    return null
+  }
+})
 ipcMain.handle('store:getLastReadBookId', (event) => {
   return StoreService.getLastReadBookId()
 })
@@ -176,20 +199,20 @@ ipcMain.handle('get-library-books', (event) => {
       console.error('获取目录失败')
       return []
     }
-    
+
     const { libraryPath } = directories
-    
+
     // 读取库目录下的所有文件
     const files = fs.readdirSync(libraryPath)
-    
+
     // 过滤出TXT文件
     const txtFiles = files.filter(file => path.extname(file) === '.txt')
-    
+
     // 构建书籍列表
     const books = txtFiles.map(file => {
       const filePath = path.join(libraryPath, file)
       const fileName = path.basename(file, '.txt')
-      
+
       return {
         id: Date.now() + Math.floor(Math.random() * 1000), // 生成临时ID
         title: fileName,
@@ -198,11 +221,98 @@ ipcMain.handle('get-library-books', (event) => {
         readingProgress: { chapterIndex: 0, lineIndex: 0 }
       }
     })
-    
+
     return books
   } catch (error) {
     console.error('获取库目录书籍失败:', error)
     return []
+  }
+})
+
+// ==================== TTS 相关 IPC 处理 ====================
+
+// 获取可用声音列表
+ipcMain.handle('tts:getVoices', (event) => {
+  try {
+    return TTSEngine.getAvailableVoices()
+  } catch (error) {
+    console.error('获取声音列表失败:', error)
+    return []
+  }
+})
+
+// 检查 Edge TTS 是否可用
+ipcMain.handle('tts:checkEdgeTTS', async (event) => {
+  try {
+    return await TTSEngine.checkEdgeTTS()
+  } catch (error) {
+    console.error('检查 Edge TTS 失败:', error)
+    return false
+  }
+})
+
+// 使用 Edge TTS 合成语音
+ipcMain.handle('tts:synthesizeEdge', async (event, text, options = {}) => {
+  try {
+    const result = await TTSEngine.synthesizeWithEdge(text, options)
+    // 返回 Base64 编码的音频数据
+    return {
+      success: true,
+      audio: result.toString('base64'),
+      format: 'mp3'
+    }
+  } catch (error) {
+    console.error('Edge TTS 合成失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+})
+
+// 使用 Azure TTS 合成语音
+ipcMain.handle('tts:synthesizeAzure', async (event, ssml) => {
+  try {
+    const result = await TTSEngine.synthesizeWithAzure(ssml)
+    return {
+      success: true,
+      audio: result.toString('base64'),
+      format: 'mp3'
+    }
+  } catch (error) {
+    console.error('Azure TTS 合成失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+})
+
+// 设置 Azure 配置
+ipcMain.handle('tts:setAzureConfig', (event, key, region) => {
+  try {
+    TTSEngine.setAzureConfig(key, region)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
+// 通用合成接口（自动选择引擎）
+ipcMain.handle('tts:synthesize', async (event, text, options = {}) => {
+  try {
+    const result = await TTSEngine.synthesize(text, options)
+    return {
+      success: true,
+      audio: result.audio.toString('base64'),
+      format: result.format
+    }
+  } catch (error) {
+    console.error('TTS 合成失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
   }
 })
 

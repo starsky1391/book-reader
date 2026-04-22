@@ -8,10 +8,11 @@ contextBridge.exposeInMainWorld('electron', {
   file: {
     readFile: (filePath) => ipcRenderer.invoke('file:readFile', filePath),
     getFileInfo: (filePath) => ipcRenderer.invoke('file:getFileInfo', filePath),
-    parseChapters: (content, type = 'txt', filePath = null) => 
+    parseChapters: (content, type = 'txt', filePath = null) =>
       ipcRenderer.invoke('file:parseChapters', content, type, filePath),
     copyFileToLibrary: (sourcePath) => ipcRenderer.invoke('file:copyFileToLibrary', sourcePath),
-    getEpubCover: (epubPath) => ipcRenderer.invoke('file:getEpubCover', epubPath)
+    getEpubCover: (epubPath) => ipcRenderer.invoke('file:getEpubCover', epubPath),
+    readImageAsBase64: (imagePath) => ipcRenderer.invoke('file:readImageAsBase64', imagePath)
   },
   store: {
     getSettings: () => ipcRenderer.invoke('store:getSettings'),
@@ -30,11 +31,21 @@ contextBridge.exposeInMainWorld('electron', {
     saveReadingProgress: (bookId, chapterIndex, lineIndex) => ipcRenderer.invoke('store:saveReadingProgress', bookId, chapterIndex, lineIndex),
     addBook: (book) => ipcRenderer.invoke('store:addBook', book),
     deleteBook: (bookId) => ipcRenderer.invoke('store:deleteBook', bookId),
+    updateBook: (bookId, updates) => ipcRenderer.invoke('store:updateBook', bookId, updates),
     getLastReadBookId: () => ipcRenderer.invoke('store:getLastReadBookId'),
     clearAll: () => ipcRenderer.invoke('store:clearAll')
   },
   library: {
     getBooks: () => ipcRenderer.invoke('get-library-books')
+  },
+  // TTS API
+  tts: {
+    getVoices: () => ipcRenderer.invoke('tts:getVoices'),
+    checkEdgeTTS: () => ipcRenderer.invoke('tts:checkEdgeTTS'),
+    synthesizeEdge: (text, options) => ipcRenderer.invoke('tts:synthesizeEdge', text, options),
+    synthesizeAzure: (ssml) => ipcRenderer.invoke('tts:synthesizeAzure', ssml),
+    setAzureConfig: (key, region) => ipcRenderer.invoke('tts:setAzureConfig', key, region),
+    synthesize: (text, options) => ipcRenderer.invoke('tts:synthesize', text, options)
   }
 })
 

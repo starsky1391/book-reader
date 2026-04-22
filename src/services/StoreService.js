@@ -167,6 +167,24 @@ class StoreService {
     return false;
   }
 
+  updateBook(bookId, updates) {
+    const config = this.readConfig();
+    const bookIndex = config.books.findIndex(book => book.id === bookId);
+    if (bookIndex !== -1) {
+      // 更新书籍信息
+      config.books[bookIndex] = {
+        ...config.books[bookIndex],
+        title: updates.title || config.books[bookIndex].title,
+        author: updates.author || config.books[bookIndex].author,
+        cover: updates.cover !== undefined ? updates.cover : config.books[bookIndex].cover
+      };
+      
+      this.writeConfig(config);
+      return config.books[bookIndex];
+    }
+    return null;
+  }
+
   clearAll() {
     this.writeConfig(this.defaults);
     
